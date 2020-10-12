@@ -1,10 +1,8 @@
-from bs4 import BeautifulSoup
-import requests
 from splinter import Browser
-import pandas as pd
-from selenium import webdriver
+from bs4 import BeautifulSoup
 import pymongo
-import requests
+import pandas as pd
+import time
 
 def init_browser():
     executable_path = {'executable_path': 'chromedriver.exe'}
@@ -16,6 +14,9 @@ def scrape():
     browser = init_browser()
     url = 'https://mars.nasa.gov/news/?page=0&per_page=40&order=publish_date+desc%2Ccreated_at+desc&search=&category=19%2C165%2C184%2C204&blank_scope=Latest'
     browser.visit(url)
+
+    time.sleep(1)
+
     html = browser.html
     soup = BeautifulSoup(html, 'html.parser')
     news_title = soup.find("div", class_="bottom_gradient").text
@@ -24,6 +25,9 @@ def scrape():
     img_url = 'https://www.jpl.nasa.gov/spaceimages/?search=&category=Mars'
     browser.visit(img_url)
     html = browser.html
+
+    time.sleep(1)
+
     soup = BeautifulSoup(html, 'html.parser')
     image_url = soup.find("article", class_="carousel_item")["style"]
     clean=image_url.strip("background-image: url('")
@@ -37,10 +41,12 @@ def scrape():
     df.set_index("Measurement", inplace=True)
     mars_table = df.to_html("marsfact.html")
 
-
     url = 'https://astrogeology.usgs.gov/search/results?q=hemisphere+enhanced&k1=target&v1=Mars'
     url_home = 'https://astrogeology.usgs.gov'
     browser.visit(url)
+
+    time.sleep(1)
+
     html = browser.html
     soup = BeautifulSoup(html, 'html.parser')
     hemisphere_image_urls = []
@@ -48,7 +54,7 @@ def scrape():
     find1=soup.find('div', class_='result-list')
     results = find1.find_all("div", class_= "item")
 
-        for result in results:
+    for result in results:
         name = result.find("h3").text
         #Source: https://splinter.readthedocs.io/en/latest/elements-in-the-page.html
         #Source 2: https://stackoverflow.com/questions/29773368/splinter-how-to-click-a-link-button-implemented-as-a-div-or-span-element
@@ -69,10 +75,12 @@ def scrape():
         "hemisphere_image_urls": hemisphere_image_urls
     }
 
-    # Close the browser after scraping
     browser.quit()
 
     # Return results
     return mars_import
+
+if __name__ == "__main__":
+    scrape()
 
 
